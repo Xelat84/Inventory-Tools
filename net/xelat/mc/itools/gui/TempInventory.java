@@ -46,32 +46,24 @@ public class TempInventory implements IInventory {
 
 	@Override
 	public int getInventoryStackLimit() {
-		// TODO Auto-generated method stub
-		return 0;
+		return 64;
 	}
 
 	@Override
 	public void onInventoryChanged() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public boolean isUseableByPlayer(EntityPlayer var1) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void openChest() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void closeChest() {
-		// TODO Auto-generated method stub
-		
 	}
 	
 }

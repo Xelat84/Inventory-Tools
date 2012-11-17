@@ -91,7 +91,9 @@ public class ContainerInventorySupplier extends Container {
 		}
 		
 		if (currentlyEquippedStack != null && slot.getType() == SLOT_SAMPLE) {
-			slot.putStack(currentlyEquippedStack.copy());
+			ItemStack sampleItem = currentlyEquippedStack.copy();
+			sampleItem.stackSize = 1;
+			slot.putStack(sampleItem);
 		}
 		else if (currentlyEquippedStack == null) {
 			// тут будем переносить найденное в маску или очищать маску

@@ -55,7 +55,6 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 		if (internalStorage[i].stackSize == 0) {
 			internalStorage[i] = null;
 		}
-		
 //		onInventoryChanged();
 		return itemstack1;
 	}
