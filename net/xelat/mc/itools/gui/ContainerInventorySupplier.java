@@ -17,11 +17,13 @@ public class ContainerInventorySupplier extends Container {
 	IInventory playerInventory;
 	TileInventorySupplier supplier;
 	IInventory dummyInventory;
+	public int[] foundSlotIds;
 	
 	public ContainerInventorySupplier(IInventory playerInventory, TileInventorySupplier supplier, IInventory dummyInventory) {
 		this.playerInventory = playerInventory;
 		this.supplier = supplier;
 		this.dummyInventory = dummyInventory;
+		foundSlotIds = new int[9];
 		
 		final int xInternal = 8;
 		final int yInternal = 101;
@@ -77,18 +79,13 @@ public class ContainerInventorySupplier extends Container {
 		}
 		
 		if (!(inventorySlots.get(slotId) instanceof CustomDummySlot)) {
-			InventoryTools.logger.info("not a customdummyslot");
 			return super.slotClick(slotId, mouseButton, isShift, entityplayer);
 		}
 		CustomDummySlot slot = (CustomDummySlot)inventorySlots.get(slotId);
-		InventoryTools.logger.info("yes, it's a customdummyslot!");
 		
 		InventoryPlayer inventoryplayer = entityplayer.inventory;
 		ItemStack currentlyEquippedStack = inventoryplayer.getItemStack();
 		
-		if (currentlyEquippedStack != null) {
-			InventoryTools.logger.info("Current item: " + currentlyEquippedStack.getItemName());
-		}
 		
 		if (currentlyEquippedStack != null && slot.getType() == SLOT_SAMPLE) {
 			ItemStack sampleItem = currentlyEquippedStack.copy();
@@ -96,15 +93,20 @@ public class ContainerInventorySupplier extends Container {
 			slot.putStack(sampleItem);
 		}
 		else if (currentlyEquippedStack == null) {
-			// тут будем переносить найденное в маску или очищать маску
 			switch (slot.getType()) {
 			case SLOT_SAMPLE:
-				slot.putStack(null);
+				slot.clearStack();
 				break;
 			case SLOT_FOUND:
+				int i = slot.getIndex() - 1;
+				ItemStack foundItem = slot.getStack();
+				if (foundItem != null) {
+					supplier.addMask(foundItem, foundSlotIds[i]);
+					slot.clearStack();
+				}
 				break;
 			case SLOT_MASK:
-				slot.putStack(null);
+				slot.clearStack();
 				break;
 			}
 		}

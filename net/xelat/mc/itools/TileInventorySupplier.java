@@ -8,17 +8,21 @@ import net.xelat.mc.itools.gui.TempInventory;
 
 public class TileInventorySupplier extends TileEntity implements IInventory {
 	private ItemStack[] internalStorage;
-	private int[] targetMask;
+	private int[] maskSlotIds;
 	private IInventory mask;
 	
 	public TileInventorySupplier() {
 		internalStorage = new ItemStack[18];
 		mask = new TempInventory(9);
-		targetMask = new int[9];
+		maskSlotIds = new int[9];
 	}
 	
 	public IInventory getMask() {
 		return mask;
+	}
+	
+	public int[] getMaskSlotIds() {
+		return maskSlotIds;
 	}
 	
 	@Override
@@ -101,6 +105,16 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 
 	@Override
 	public void closeChest() {
+	}
+
+	public void addMask(ItemStack foundItem, int i) {
+		for (int j = 0; j < 9; j++) {
+			if (mask.getStackInSlot(j) == null) {
+				mask.setInventorySlotContents(j, foundItem);
+				maskSlotIds[j] = i;
+				break;
+			}
+		}
 	}
 	
 }
