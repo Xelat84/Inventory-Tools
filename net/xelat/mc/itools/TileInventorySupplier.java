@@ -1,5 +1,7 @@
 package net.xelat.mc.itools;
 
+
+import net.minecraft.src.Block;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.IInventory;
 import net.minecraft.src.ItemStack;
@@ -10,6 +12,7 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 	private ItemStack[] internalStorage;
 	private int[] maskSlotIds;
 	private IInventory mask;
+	private int _supplyTick = 0;
 	
 	public TileInventorySupplier() {
 		internalStorage = new ItemStack[18];
@@ -28,7 +31,24 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
-		//TODO check inventory and supply it if needed
+		_supplyTick++;
+		if (_supplyTick >= 20) {
+			_supplyTick = 0;
+			//FIXME fix block access
+			BlockInventorySupplier block = (BlockInventorySupplier)(Block.blocksList[BlockInventorySupplier.BLOCK_ID]);
+//			if (!(blockType instanceof BlockInventorySupplier)) {
+//				InventoryTools.logger.info("Wrong block type!");
+//				return;
+//			}
+			
+			IInventory target = block.getFacingBlockInventory(worldObj, xCoord, yCoord, zCoord);
+			if (target != null) {
+				InventoryTools.logger.info("I see inventory!");
+			}
+			else {
+				InventoryTools.logger.info("Can't see inventory!");
+			}
+		}
 	}
 	
 	@Override
