@@ -14,16 +14,19 @@ public class ContainerInventorySupplier extends Container implements ISlotClickH
 	private TileInventorySupplier supplier;
 	
 	public BaseInventory sampleInventory;
-	public BaseInventory resultInventory;
-	public int[] resultTargetSlotIds;
-	private int _nextResultSlot = 0;
+	public SearchResultInventory resultInventory;
+//	public int[] resultTargetSlotIds;
+//	private int _nextResultSlot = 0;
 	
 	public ContainerInventorySupplier(IInventory playerInventory, TileInventorySupplier supplier) {
 		this.supplier = supplier;
 		
 		sampleInventory = new BaseInventory(1);
-		resultInventory = new BaseInventory(9);
-		resultTargetSlotIds = new int[9];
+		resultInventory = new SearchResultInventory(9);
+		//TODO only on client side!!!
+		supplier.dummyInventory = resultInventory;
+		
+//		resultTargetSlotIds = new int[9];
 		
 		
 		// Internal Inventory
@@ -82,7 +85,7 @@ public class ContainerInventorySupplier extends Container implements ISlotClickH
 		
 		
 	}
-	
+	/*
 	public void clearFoundResults() {
 		for (int i = 0; i < _nextResultSlot; i++) {
 			resultInventory.setInventorySlotContents(i, null);
@@ -99,7 +102,7 @@ public class ContainerInventorySupplier extends Container implements ISlotClickH
 		resultInventory.setInventorySlotContents(_nextResultSlot, item);
 		_nextResultSlot++;
 	}
-	
+	*/
 	@Override
 	public ItemStack slotClick(int slotId, int mouseButton, int isShift, EntityPlayer entityplayer) {
 		// Handling only dummy slots!
@@ -135,6 +138,10 @@ public class ContainerInventorySupplier extends Container implements ISlotClickH
 				dummySlot.clearStack();
 			}
 		}
+	}
+
+	public void onGuiClosed() {
+		supplier.dummyInventory = null;
 	}
 
 }

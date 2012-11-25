@@ -15,6 +15,7 @@ import net.minecraft.src.TileEntity;
 import net.minecraft.src.World;
 import net.xelat.mc.itools.gui.BaseInventory;
 import net.xelat.mc.itools.gui.MaskInventorySupplier;
+import net.xelat.mc.itools.gui.SearchResultInventory;
 import net.xelat.mc.itools.network.PacketIds;
 import net.xelat.mc.itools.network.SlotSearchResultPacket;
 
@@ -22,6 +23,7 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 	private BaseInventory internalStorage;
 	private MaskInventorySupplier maskSupplier;
 	private int _supplyTick = 0;
+	public SearchResultInventory dummyInventory;
 	
 	public TileInventorySupplier() {
 		internalStorage = new BaseInventory(18);
@@ -179,6 +181,11 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 		}
 		SlotSearchResultPacket packet = new SlotSearchResultPacket(PacketIds.RESPONSE_SCAN, xCoord, yCoord, zCoord, list);
 		return packet;
+	}
+
+	public void setSearchResult(List<LinkedItemStack> list) {
+		if (dummyInventory == null) return;
+		dummyInventory.update(list);
 	}
 	
 }

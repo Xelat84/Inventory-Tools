@@ -1,15 +1,11 @@
 package net.xelat.mc.itools;
 
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import buildcraft.core.DefaultProps;
-import buildcraft.core.utils.Localization;
-
 
 import net.minecraft.src.Block;
 import net.minecraft.src.ItemStack;
+import buildcraft.core.utils.Localization;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.Init;

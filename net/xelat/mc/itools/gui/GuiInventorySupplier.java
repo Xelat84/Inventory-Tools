@@ -20,6 +20,7 @@ import net.minecraft.src.IInventory;
 import net.minecraft.src.ItemStack;
 import net.xelat.mc.itools.InventoryTools;
 import net.xelat.mc.itools.TileInventorySupplier;
+import net.xelat.mc.itools.network.ItemStackPacket;
 import net.xelat.mc.itools.network.PacketIds;
 
 public class GuiInventorySupplier extends GuiContainer {
@@ -66,7 +67,7 @@ public class GuiInventorySupplier extends GuiContainer {
 			}
 			
 			
-			final PacketSlotChange packet = new PacketSlotChange(PacketIds.REQUEST_SCAN, supplier.xCoord, supplier.yCoord, supplier.zCoord, 0, sampleItem);
+			final ItemStackPacket packet = new ItemStackPacket(PacketIds.REQUEST_SCAN, supplier.xCoord, supplier.yCoord, supplier.zCoord, sampleItem);
 			PacketDispatcher.sendPacketToPlayer(packet.getPacket(), (Player)_player);
 			
 			/*
@@ -116,7 +117,7 @@ public class GuiInventorySupplier extends GuiContainer {
 			for (int i = 0; i < 9; i++) {
 				ItemStack item = container.resultInventory.getStackInSlot(i);
 				if (item == null) continue;
-				fontRenderer.drawString(Integer.toString(container.resultTargetSlotIds[i]), j + 8 + i * 18, k + 34, 0x000000);
+				fontRenderer.drawString(Integer.toString(container.resultInventory.resultTargetSlotIds[i]), j + 8 + i * 18, k + 34, 0x000000);
 			}
 //		}
 		
@@ -157,5 +158,11 @@ public class GuiInventorySupplier extends GuiContainer {
 	
 	protected int getCenteredOffset(String string, int xWidth) {
 		return (xWidth - fontRenderer.getStringWidth(string)) / 2;
+	}
+	
+	@Override
+	public void onGuiClosed() {
+		super.onGuiClosed();
+		container.onGuiClosed();
 	}
 }

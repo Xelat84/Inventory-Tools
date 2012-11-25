@@ -7,8 +7,8 @@ import java.io.IOException;
 import net.minecraft.src.ItemStack;
 
 public class LinkedItemStack {
-	ItemStack item;
-	int slotId;
+	public ItemStack item;
+	public int slotId;
 	
 	public LinkedItemStack(ItemStack item, int slotId) {
 		this.item = item;

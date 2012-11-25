@@ -7,9 +7,11 @@ import java.util.List;
 
 import net.xelat.mc.itools.LinkedItemStack;
 
+import buildcraft.core.DefaultProps;
 import buildcraft.core.network.PacketCoordinates;
 
 public class SlotSearchResultPacket extends PacketCoordinates {
+	protected String channel = "XIT";
 	
 	public List<LinkedItemStack> list;
 	
