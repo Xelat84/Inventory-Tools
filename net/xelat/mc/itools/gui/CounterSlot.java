@@ -25,7 +25,7 @@ public class CounterSlot extends CustomDummySlot implements IInteractiveSlot {
 		
 		switch (mouseButton) {
 		case MBUTTON_LEFT:
-			if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) || item.stackSize == 1) {
+			if (item.stackSize == 1 || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)) {
 				clearStack();
 				return;
 			}
@@ -38,11 +38,7 @@ public class CounterSlot extends CustomDummySlot implements IInteractiveSlot {
 			}
 			break;
 		case MBUTTON_RIGHT:
-			if (isShift == 0) {
-				item.stackSize++;
-			} else {
-				item.stackSize = Math.min(item.getMaxStackSize(), item.stackSize * 2);
-			}
+			item.stackSize = Math.min(item.getMaxStackSize(), item.stackSize + (isShift == 0 ? 1 : item.stackSize));
 			break;
 		default:
 			break;
