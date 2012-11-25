@@ -41,7 +41,7 @@ public class GuiHandler implements IGuiHandler {
 			if (!(tile instanceof TileInventorySupplier)) {
 				return null;
 			}
-			return new GuiInventorySupplier(player.inventory, (TileInventorySupplier)tile);
+			return new GuiInventorySupplier(player, (TileInventorySupplier)tile);
 		}
 		
 		return null;

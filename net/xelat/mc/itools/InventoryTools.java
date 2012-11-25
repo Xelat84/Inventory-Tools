@@ -5,7 +5,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import buildcraft.core.DefaultProps;
-import buildcraft.core.network.PacketHandler;
 import buildcraft.core.utils.Localization;
 
 
@@ -24,7 +23,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
 @Mod(name="InventoryTools", version="0.0.1", useMetadata = false, modid = "InventoryTools", dependencies="required-after:Forge@[5.0,)")
-@NetworkMod(channels = {DefaultProps.NET_CHANNEL_NAME}, packetHandler = PacketHandler.class, clientSideRequired = true, serverSideRequired = true)
+@NetworkMod(channels = {"XIT"}, packetHandler = PacketHandler.class, clientSideRequired = true, serverSideRequired = true)
 //@NetworkMod(channels = {}, clientSideRequired = true, serverSideRequired = true)
 public class InventoryTools {
 	

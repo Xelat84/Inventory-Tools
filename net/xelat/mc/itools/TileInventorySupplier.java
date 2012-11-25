@@ -1,14 +1,22 @@
 package net.xelat.mc.itools;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+import buildcraft.core.network.BuildCraftPacket;
+import buildcraft.core.network.PacketSlotChange;
 import net.minecraft.src.Block;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.IInventory;
 import net.minecraft.src.ItemStack;
 import net.minecraft.src.NBTTagCompound;
 import net.minecraft.src.TileEntity;
+import net.minecraft.src.World;
 import net.xelat.mc.itools.gui.BaseInventory;
 import net.xelat.mc.itools.gui.MaskInventorySupplier;
+import net.xelat.mc.itools.network.PacketIds;
+import net.xelat.mc.itools.network.SlotSearchResultPacket;
 
 public class TileInventorySupplier extends TileEntity implements IInventory {
 	private BaseInventory internalStorage;
@@ -140,6 +148,37 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 		internalStorage.readFromNBT(p);
 		NBTTagCompound maskTag = (NBTTagCompound) nbtTagCompound.getTag("mask");
 		maskSupplier.readFromNBT(maskTag);
+	}
+
+	public BuildCraftPacket getSearchResultPacket(World worldObj, ItemStack sampleItem) {
+		List<LinkedItemStack> list = new ArrayList<LinkedItemStack>();
+		IInventory targetInventory = getTargetInventory();
+		if (targetInventory == null) {
+			InventoryTools.logger.info("Target Inventory not found :(");
+		}
+		else {
+			int l = targetInventory.getSizeInventory();
+			InventoryTools.logger.info("Target inventory size=" + Integer.toString(l));
+			InventoryTools.logger.info("Target inventory type=" + targetInventory.getClass().getName());
+			for (int i = 0; i < l; i++) {
+				ItemStack targetItem = targetInventory.getStackInSlot(i);
+				if (targetItem == null) {
+					InventoryTools.logger.info("Stack in slot " + Integer.toString(i) + " is null");
+					continue;
+				}
+				InventoryTools.logger.info("Item[" + Integer.toString(i) + "] = " + targetItem.getItemName());
+				if (targetItem.itemID != sampleItem.itemID || (sampleItem.getHasSubtypes() && sampleItem.getItemDamage() != targetItem.getItemDamage())) {
+					InventoryTools.logger.info(Integer.toString(sampleItem.itemID) + " != " + Integer.toString(targetItem.itemID));
+					continue;
+				}
+				//container.addFoundResult(sampleItem, i);
+				list.add(new LinkedItemStack(sampleItem, i));
+				InventoryTools.logger.info("Found item: " + targetItem.getItemName());
+				//found = true;
+			}
+		}
+		SlotSearchResultPacket packet = new SlotSearchResultPacket(PacketIds.RESPONSE_SCAN, xCoord, yCoord, zCoord, list);
+		return packet;
 	}
 	
 }

@@ -3,29 +3,38 @@ package net.xelat.mc.itools.gui;
 
 import org.lwjgl.opengl.GL11;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
+
+
 import buildcraft.builders.TileFiller;
 import buildcraft.core.DefaultProps;
+import buildcraft.core.network.PacketCoordinates;
+import buildcraft.core.network.PacketSlotChange;
 import buildcraft.core.utils.StringUtil;
 import net.minecraft.src.Container;
+import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.GuiButton;
 import net.minecraft.src.GuiContainer;
 import net.minecraft.src.IInventory;
 import net.minecraft.src.ItemStack;
 import net.xelat.mc.itools.InventoryTools;
 import net.xelat.mc.itools.TileInventorySupplier;
+import net.xelat.mc.itools.network.PacketIds;
 
 public class GuiInventorySupplier extends GuiContainer {
 	
 	private TileInventorySupplier supplier;
 	private ContainerInventorySupplier container;
 	private GuiSmallButton scanBtn;
-	
+	private final EntityPlayer _player;
 	 
 	
 	private boolean found = false;
 
-	public GuiInventorySupplier(IInventory playerInventory, TileInventorySupplier supplier) {
-		super(new ContainerInventorySupplier(playerInventory, supplier));
+	public GuiInventorySupplier(EntityPlayer player, TileInventorySupplier supplier) {
+		super(new ContainerInventorySupplier(player.inventory, supplier));
+		_player = player;
 		this.supplier = supplier;
 		xSize = 176;
 		ySize = 222;
@@ -57,15 +66,20 @@ public class GuiInventorySupplier extends GuiContainer {
 			}
 			
 			
+			final PacketSlotChange packet = new PacketSlotChange(PacketIds.REQUEST_SCAN, supplier.xCoord, supplier.yCoord, supplier.zCoord, 0, sampleItem);
+			PacketDispatcher.sendPacketToPlayer(packet.getPacket(), (Player)_player);
 			
+			/*
 			IInventory targetInventory = supplier.getTargetInventory();
 			if (targetInventory == null) {
 				InventoryTools.logger.info("Target Inventory not found :(");
 				return;
 			}
 			
+			
 			int l = targetInventory.getSizeInventory();
 			InventoryTools.logger.info("Target inventory size=" + Integer.toString(l));
+			InventoryTools.logger.info("Target inventory type=" + targetInventory.getClass().getName());
 			for (int i = 0; i < l; i++) {
 				ItemStack targetItem = targetInventory.getStackInSlot(i);
 				if (targetItem == null) {
@@ -81,7 +95,7 @@ public class GuiInventorySupplier extends GuiContainer {
 				InventoryTools.logger.info("Found item: " + targetItem.getItemName());
 				found = true;
 			}
-			
+			*/
 		}
 	}
 
@@ -98,13 +112,13 @@ public class GuiInventorySupplier extends GuiContainer {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 		
-		if (found) {
+//		if (found) {
 			for (int i = 0; i < 9; i++) {
 				ItemStack item = container.resultInventory.getStackInSlot(i);
 				if (item == null) continue;
 				fontRenderer.drawString(Integer.toString(container.resultTargetSlotIds[i]), j + 8 + i * 18, k + 34, 0x000000);
 			}
-		}
+//		}
 		
 		MaskInventorySupplier mask = supplier.getMaskSupplier();
 		for (int i = 0; i < 9; i++) {
