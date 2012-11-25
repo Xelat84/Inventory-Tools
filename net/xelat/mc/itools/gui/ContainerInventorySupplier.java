@@ -9,21 +9,24 @@ import net.minecraft.src.Slot;
 import net.xelat.mc.itools.InventoryTools;
 import net.xelat.mc.itools.TileInventorySupplier;
 
-public class ContainerInventorySupplier extends Container {
-	private static final int SLOT_MASK = 1;
-	private static final int SLOT_FOUND = 2;
-	private static final int SLOT_SAMPLE = 3;		
+public class ContainerInventorySupplier extends Container implements ISlotClickHandler {
 	
-	IInventory playerInventory;
-	TileInventorySupplier supplier;
-	IInventory dummyInventory;
-	public int[] foundSlotIds;
+	private TileInventorySupplier supplier;
 	
-	public ContainerInventorySupplier(IInventory playerInventory, TileInventorySupplier supplier, IInventory dummyInventory) {
-		this.playerInventory = playerInventory;
+	public BaseInventory sampleInventory;
+	public BaseInventory resultInventory;
+	public int[] resultTargetSlotIds;
+	private int _nextResultSlot = 0;
+	
+	public ContainerInventorySupplier(IInventory playerInventory, TileInventorySupplier supplier) {
 		this.supplier = supplier;
-		this.dummyInventory = dummyInventory;
-		foundSlotIds = new int[9];
+		
+		sampleInventory = new BaseInventory(1);
+		resultInventory = new BaseInventory(9);
+		resultTargetSlotIds = new int[9];
+		
+		
+		// Internal Inventory
 		
 		final int xInternal = 8;
 		final int yInternal = 101;
@@ -34,6 +37,8 @@ public class ContainerInventorySupplier extends Container {
 			}
 		}
 		
+		// User Inventory
+		
 		final int xInventory = 8;
 		final int yInventory = 140;
 		
@@ -43,6 +48,8 @@ public class ContainerInventorySupplier extends Container {
 			}
 		}
 		
+		// User HotBar
+		
 		final int xFastSlots = 8;
 		final int yFastSlots = 198;
 		
@@ -50,66 +57,62 @@ public class ContainerInventorySupplier extends Container {
 			addSlotToContainer(new Slot(playerInventory, i1, xFastSlots + i1 * 18, yFastSlots));
 		}
 		
+		
+		// 
+		
+		
 		final int xMask = 8;
 		final int yMask = 76;
 		
-		IInventory mask = supplier.getMask();
+		IInventory mask = supplier.getMaskSupplier();
 		for (int i = 0; i < 9; i++) {
-			addSlotToContainer(new CustomDummySlot(SLOT_MASK, mask, i, xMask + i * 18, yMask));
+			addSlotToContainer(new CounterSlot(mask, i, xMask + i * 18, yMask));
 		}
 		
 		final int xFound = 8;
 		final int yFound = 34;
 		
 		for (int i = 0; i < 9; i++) {
-			addSlotToContainer(new CustomDummySlot(SLOT_FOUND, dummyInventory, i + 1, xFound + i * 18, yFound));
+			InteractiveSlot slot = new InteractiveSlot(resultInventory, i, xFound + i * 18, yFound);
+			slot.clickHandler = this;
+			addSlotToContainer(slot);
 		}
 		
-		CustomDummySlot sampleSlot = new CustomDummySlot(SLOT_SAMPLE, dummyInventory, 0, 80, 10);
-		sampleSlot.acceptItems = true;
-		addSlotToContainer(sampleSlot);
+		addSlotToContainer(new SampleSlot(sampleInventory, 0, 80, 10));
 		
 		
 	}
 	
+	public void clearFoundResults() {
+		for (int i = 0; i < _nextResultSlot; i++) {
+			resultInventory.setInventorySlotContents(i, null);
+		}
+		_nextResultSlot = 0;
+	}
+	
+	public void addFoundResult(ItemStack item, int targetSlotId) {
+		if (_nextResultSlot == resultInventory.getSizeInventory()) {
+			return;
+		}
+		
+		resultTargetSlotIds[_nextResultSlot] = targetSlotId;
+		resultInventory.setInventorySlotContents(_nextResultSlot, item);
+		_nextResultSlot++;
+	}
+	
 	@Override
 	public ItemStack slotClick(int slotId, int mouseButton, int isShift, EntityPlayer entityplayer) {
-		if (slotId < 0) {
+		// Handling only dummy slots!
+		if (slotId < 0 || !(inventorySlots.get(slotId) instanceof IInteractiveSlot)) {
 			return super.slotClick(slotId, mouseButton, isShift, entityplayer);
 		}
 		
-		if (!(inventorySlots.get(slotId) instanceof CustomDummySlot)) {
-			return super.slotClick(slotId, mouseButton, isShift, entityplayer);
-		}
-		CustomDummySlot slot = (CustomDummySlot)inventorySlots.get(slotId);
+		IInteractiveSlot slot = (IInteractiveSlot)inventorySlots.get(slotId);
+		slot.processClick(mouseButton, isShift, entityplayer);
 		
 		InventoryPlayer inventoryplayer = entityplayer.inventory;
 		ItemStack currentlyEquippedStack = inventoryplayer.getItemStack();
 		
-		
-		if (currentlyEquippedStack != null && slot.getType() == SLOT_SAMPLE) {
-			ItemStack sampleItem = currentlyEquippedStack.copy();
-			sampleItem.stackSize = 1;
-			slot.putStack(sampleItem);
-		}
-		else if (currentlyEquippedStack == null) {
-			switch (slot.getType()) {
-			case SLOT_SAMPLE:
-				slot.clearStack();
-				break;
-			case SLOT_FOUND:
-				int i = slot.getIndex() - 1;
-				ItemStack foundItem = slot.getStack();
-				if (foundItem != null) {
-					supplier.addMask(foundItem, foundSlotIds[i]);
-					slot.clearStack();
-				}
-				break;
-			case SLOT_MASK:
-				slot.clearStack();
-				break;
-			}
-		}
 		return currentlyEquippedStack;
 	}
 	
@@ -120,6 +123,18 @@ public class ContainerInventorySupplier extends Container {
 	
 	@Override
 	protected void retrySlotClick(int i, int j, boolean flag, EntityPlayer entityplayer) {
+	}
+
+	@Override
+	public void handleSlotClick(Slot slot) {
+		CustomDummySlot dummySlot = (CustomDummySlot)slot;
+		ItemStack foundItem = dummySlot.getStack();
+		if (foundItem != null) {
+			int targetSlotId = dummySlot.getIndex();
+			if (supplier.getMaskSupplier().addMaskItem(foundItem, targetSlotId)) {
+				dummySlot.clearStack();
+			}
+		}
 	}
 
 }

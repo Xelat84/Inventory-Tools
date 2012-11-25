@@ -5,27 +5,23 @@ import net.minecraft.src.Block;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.IInventory;
 import net.minecraft.src.ItemStack;
+import net.minecraft.src.NBTTagCompound;
 import net.minecraft.src.TileEntity;
-import net.xelat.mc.itools.gui.TempInventory;
+import net.xelat.mc.itools.gui.BaseInventory;
+import net.xelat.mc.itools.gui.MaskInventorySupplier;
 
 public class TileInventorySupplier extends TileEntity implements IInventory {
-	private ItemStack[] internalStorage;
-	private int[] maskSlotIds;
-	private IInventory mask;
+	private BaseInventory internalStorage;
+	private MaskInventorySupplier maskSupplier;
 	private int _supplyTick = 0;
 	
 	public TileInventorySupplier() {
-		internalStorage = new ItemStack[18];
-		mask = new TempInventory(9);
-		maskSlotIds = new int[9];
+		internalStorage = new BaseInventory(18);
+		maskSupplier = new MaskInventorySupplier(9);
 	}
 	
-	public IInventory getMask() {
-		return mask;
-	}
-	
-	public int[] getMaskSlotIds() {
-		return maskSlotIds;
+	public MaskInventorySupplier getMaskSupplier() {
+		return maskSupplier;
 	}
 	
 	@Override
@@ -34,50 +30,55 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 		_supplyTick++;
 		if (_supplyTick >= 20) {
 			_supplyTick = 0;
-			//FIXME fix block access
-			BlockInventorySupplier block = (BlockInventorySupplier)(Block.blocksList[BlockInventorySupplier.BLOCK_ID]);
-//			if (!(blockType instanceof BlockInventorySupplier)) {
-//				InventoryTools.logger.info("Wrong block type!");
-//				return;
-//			}
 			
-			IInventory target = block.getFacingBlockInventory(worldObj, xCoord, yCoord, zCoord);
+			IInventory target = getTargetInventory();
 			if (target != null) {
-				InventoryTools.logger.info("I see inventory!");
+				//InventoryTools.logger.info("I see inventory!");
+				maskSupplier.supplyInventory(this, target);
 			}
 			else {
-				InventoryTools.logger.info("Can't see inventory!");
+				//InventoryTools.logger.info("Can't see inventory!");
 			}
 		}
 	}
 	
+	public IInventory getTargetInventory() {
+		//FIXME fix block access
+		BlockInventorySupplier block = (BlockInventorySupplier)(Block.blocksList[BlockInventorySupplier.BLOCK_ID]);
+//		if (!(blockType instanceof BlockInventorySupplier)) {
+//			InventoryTools.logger.info("Wrong block type!");
+//			return;
+//		}
+		
+		return block.getFacingBlockInventory(worldObj, xCoord, yCoord, zCoord);
+	}
+	
 	@Override
 	public int getSizeInventory() {
-		return internalStorage.length;
+		return internalStorage.getSizeInventory();
 	}
 
 	@Override
 	public ItemStack getStackInSlot(int i) {
-		return internalStorage[i];
+		return internalStorage.getStackInSlot(i);
 	}
 
 	@Override
 	public ItemStack decrStackSize(int i, int j) {
-		if (internalStorage[i] == null) {
+		ItemStack item = internalStorage.getStackInSlot(i);
+		if (item == null) {
 			return null;
 		}
 		
-		if (internalStorage[i].stackSize <= j) {
-			ItemStack itemstack = internalStorage[i];
-			internalStorage[i] = null;
-//			onInventoryChanged();
-			return itemstack;
+		if (item.stackSize <= j) {
+			internalStorage.setInventorySlotContents(i, null);
+			return item;
 		}
 		
-		ItemStack itemstack1 = internalStorage[i].splitStack(j);
+		ItemStack itemstack1 = item.splitStack(j);
 		
-		if (internalStorage[i].stackSize == 0) {
-			internalStorage[i] = null;
+		if (item.stackSize <= 0) {
+			internalStorage.setInventorySlotContents(i, null);
 		}
 //		onInventoryChanged();
 		return itemstack1;
@@ -85,20 +86,14 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 
 	@Override
 	public ItemStack getStackInSlotOnClosing(int slot) {
-		if (internalStorage[slot] == null) {
-			return null;
-		}
-		ItemStack toReturn = internalStorage[slot];
-		internalStorage[slot] = null;
-		return toReturn;
+		ItemStack item = internalStorage.getStackInSlot(slot);
+		internalStorage.setInventorySlotContents(slot, null);
+		return item;
 	}
 
 	@Override
 	public void setInventorySlotContents(int i, ItemStack itemstack) {
-		internalStorage[i] = itemstack;
-		if (itemstack != null && itemstack.stackSize > getInventoryStackLimit()) {
-			itemstack.stackSize = getInventoryStackLimit();
-		}
+		internalStorage.setInventorySlotContents(i, itemstack);
 	}
 
 	@Override
@@ -108,7 +103,7 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 
 	@Override
 	public int getInventoryStackLimit() {
-		return 64;
+		return internalStorage.getInventoryStackLimit();
 	}
 
 	@Override
@@ -126,15 +121,25 @@ public class TileInventorySupplier extends TileEntity implements IInventory {
 	@Override
 	public void closeChest() {
 	}
-
-	public void addMask(ItemStack foundItem, int i) {
-		for (int j = 0; j < 9; j++) {
-			if (mask.getStackInSlot(j) == null) {
-				mask.setInventorySlotContents(j, foundItem);
-				maskSlotIds[j] = i;
-				break;
-			}
-		}
+	
+	@Override
+	public void writeToNBT(NBTTagCompound nbtTagCompound) {
+		super.writeToNBT(nbtTagCompound);
+		NBTTagCompound inventoryTag = new NBTTagCompound();
+		internalStorage.writeToNBT(inventoryTag);
+		nbtTagCompound.setTag("inventory", inventoryTag);
+		NBTTagCompound maskTag = new NBTTagCompound();
+		maskSupplier.writeToNBT(maskTag);
+		nbtTagCompound.setTag("mask", maskTag);
+	}
+	
+	@Override
+	public void readFromNBT(NBTTagCompound nbtTagCompound) {
+		super.readFromNBT(nbtTagCompound);
+		NBTTagCompound p = (NBTTagCompound) nbtTagCompound.getTag("inventory");
+		internalStorage.readFromNBT(p);
+		NBTTagCompound maskTag = (NBTTagCompound) nbtTagCompound.getTag("mask");
+		maskSupplier.readFromNBT(maskTag);
 	}
 	
 }

@@ -5,7 +5,7 @@ import net.minecraft.src.TileEntity;
 import net.minecraft.src.World;
 import net.xelat.mc.itools.gui.ContainerInventorySupplier;
 import net.xelat.mc.itools.gui.GuiInventorySupplier;
-import net.xelat.mc.itools.gui.TempInventory;
+import net.xelat.mc.itools.gui.BaseInventory;
 import cpw.mods.fml.common.network.IGuiHandler;
 
 public class GuiHandler implements IGuiHandler {
@@ -23,7 +23,7 @@ public class GuiHandler implements IGuiHandler {
 			if (!(tile instanceof TileInventorySupplier)) {
 				return null;
 			}
-			return new ContainerInventorySupplier(player.inventory,	(TileInventorySupplier) tile, new TempInventory(10));
+			return new ContainerInventorySupplier(player.inventory,	(TileInventorySupplier) tile);
 		}
 		return null;
 	}

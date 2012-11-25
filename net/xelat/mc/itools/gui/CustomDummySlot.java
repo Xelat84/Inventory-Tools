@@ -9,17 +9,16 @@ public class CustomDummySlot extends Slot {
 	public int _type = 0;
 	public boolean acceptItems = false;
 	private int _index;
+	public int data;
 	
-	public CustomDummySlot(IInventory par1iInventory, int par2, int par3,
-			int par4) {
-		super(par1iInventory, par2, par3, par4);
-		_index = par2;
+	public CustomDummySlot(IInventory inventory, int slotId, int xPos, int yPos) {
+		super(inventory, slotId, xPos, yPos);
+		_index = slotId;
 	}
 
-	public CustomDummySlot(int type, IInventory par1iInventory, int par2, int par3,
-			int par4) {
-		super(par1iInventory, par2, par3, par4);
-		_index = par2;
+	public CustomDummySlot(int type, IInventory inventory, int slotId, int xPos, int yPos) {
+		super(inventory, slotId, xPos, yPos);
+		_index = slotId;
 		_type = type;
 	}
 	
@@ -32,10 +31,14 @@ public class CustomDummySlot extends Slot {
 	}
 	
 	@Override
-	public void putStack(ItemStack par1ItemStack) {
+	public void putStack(ItemStack itemStack) {
 		if (acceptItems) {
-			super.putStack(par1ItemStack);
+			super.putStack(itemStack);
 		}
+	}
+	
+	public void setStack(ItemStack itemStack) {
+		super.putStack(itemStack);
 	}
 	
 	public void clearStack() {
